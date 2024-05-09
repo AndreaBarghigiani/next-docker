@@ -1,0 +1,45 @@
+services:
+  app:
+    container_name: app
+    build:
+      context: ./app
+      dockerfile: dev.Dockerfile
+
+    # Set environment variables directly in the docker-compose file
+    # environment:
+    #   AUTH_SECRET: ${AUTH_SECRET}
+
+    # Set environment variables based on the .env file
+    env_file:
+      - .env
+      - .env.local
+    volumes:
+      - ./app:/app
+    depends_on:
+      - db
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - app_network
+
+  db:
+    image: postgres:16-alpine
+    container_name: db
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+    restart: always
+    ports:
+      - ${DB_PORT}:5432
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+# Define a network, which allows containers to communicate
+# with each other, by using their container name as a hostname
+networks:
+  app_network:
+    external: true
